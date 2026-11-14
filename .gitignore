@@ -1,11 +1,29 @@
-@"
+﻿# Python
 .venv/
 venv/
 __pycache__/
 *.py[cod]
+
+# Jupyter
 .ipynb_checkpoints/
+
+# IDE
 .vscode/
 .idea/
+
+# Environment
 .env
+
+# Logs
 *.log
-"@ | Out-File -Encoding utf8 .gitignore
+
+# MLflow
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Temporary files
+*.tmp
+.DS_Store
+/models
+/reports
