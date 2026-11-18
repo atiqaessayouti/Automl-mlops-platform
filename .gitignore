@@ -25,5 +25,9 @@ mlflow.db
 # Temporary files
 *.tmp
 .DS_Store
-/models
-/reports
+
+mlruns/
+
+models/evaluation_models/
+
+mlflow.db
