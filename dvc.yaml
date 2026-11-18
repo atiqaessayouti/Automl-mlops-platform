@@ -1,0 +1,12 @@
+stages:
+  train_and_register:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - data/processed
+      - models/preprocessor.joblib
+    outs:
+      - models/churn_pipeline.joblib
+    metrics:
+      - reports/metrics.json:
+          cache: false
