@@ -2,27 +2,31 @@ from contextlib import asynccontextmanager
 import sys
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from src.predict import load_pipeline, predict_churn
+from src.predict import PIPELINE_PATH, load_pipeline, predict_churn
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    load_pipeline()
+    if PIPELINE_PATH.exists():
+        load_pipeline()
     yield
 
 
 app = FastAPI(
-    title="Telco Customer Churn Prediction API",
-    description="API MLOps de prédiction du risque de résiliation client (Champion : SVM)",
+    title="AutoML MLOps Platform API",
+    description="API de prédiction du Telco Customer Churn (Modèle Champion : SVM)",
     version="1.0.0",
     lifespan=lifespan,
 )
+
+Instrumentator().instrument(app).expose(app)
 
 
 class ClientData(BaseModel):
@@ -49,16 +53,23 @@ class ClientData(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "API Telco Churn opérationnelle. Ouvre /docs pour tester."}
+    return {"message": "AutoML MLOps Platform API is running"}
 
 
 @app.get("/health")
 def health_check():
-    artifact = load_pipeline()
+    if PIPELINE_PATH.exists():
+        artifact = load_pipeline()
+        return {
+            "status": "healthy",
+            "service": "automl-api",
+            "model": artifact["model_name"],
+            "threshold": artifact["threshold"],
+        }
     return {
         "status": "healthy",
-        "model": artifact["model_name"],
-        "threshold": artifact["threshold"],
+        "service": "automl-api",
+        "model": "not-loaded",
     }
 
 
