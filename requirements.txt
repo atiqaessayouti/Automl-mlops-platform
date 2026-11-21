@@ -1,11 +1,15 @@
+
 pandas
 numpy
 scikit-learn
+joblib
 matplotlib
 seaborn
 jupyter
 fastapi
 uvicorn[standard]
+streamlit
+mlflow
+prometheus-fastapi-instrumentator
 pytest
 httpx
-prometheus-fastapi-instrumentator

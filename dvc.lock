@@ -1,0 +1,27 @@
+schema: '2.0'
+stages:
+  train_and_register:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 3b7500bce4816e4d6e4ae3c0dcab6e21.dir
+      size: 2724315
+      nfiles: 5
+    - path: models/preprocessor.joblib
+      hash: md5
+      md5: 614be6ccb4d53a17c2cf0140640348da
+      size: 7396
+    - path: src/train.py
+      hash: md5
+      md5: 9d9420c33080117edbed30804c8e5b5e
+      size: 4520
+    outs:
+    - path: models/churn_pipeline.joblib
+      hash: md5
+      md5: 22520d39049eeda266ee2241b63c0602
+      size: 1020826
+    - path: reports/metrics.json
+      hash: md5
+      md5: a20c7e03d8a72c81d3c195c54e23d827
+      size: 157

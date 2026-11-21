@@ -1,0 +1,9 @@
+{
+  "model": "SVM",
+  "threshold": 0.35,
+  "accuracy": 0.7928,
+  "precision": 0.6178,
+  "recall": 0.5749,
+  "f1_score": 0.5956,
+  "roc_auc": 0.7905
+}
