@@ -3,10 +3,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements-deploy.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --default-timeout=120 -r requirements-deploy.txt
 
+COPY .streamlit/ .streamlit/
 COPY src/ ./src/
 COPY app/ ./app/
 COPY models/ ./models/

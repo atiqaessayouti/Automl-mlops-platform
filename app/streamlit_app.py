@@ -1,81 +1,74 @@
-import json
 import sys
 from pathlib import Path
+
 import streamlit as st
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.predict import predict_churn
+from app.ui import apply_styles
 
-st.set_page_config(page_title="Telco Churn MLOps", page_icon="📊", layout="centered")
+st.set_page_config(
+    page_title="AutoML Studio",
+    page_icon=":material/model_training:",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
-st.title("📊 Prédiction du Churn Client (Telco)")
-st.caption("Modèle Champion : **SVM** | F1-score : **0.6305** | Seuil optimal : **0.35**")
+apply_styles()
 
-with st.form("churn_form"):
-    st.subheader("Profil du client")
-    col1, col2 = st.columns(2)
+with st.sidebar:
+    st.markdown("### :material/model_training: AutoML Studio")
+    st.caption("Plateforme intelligente de Machine Learning & MLOps")
+    st.badge("Espace résiliation télécom", color="violet", icon=":material/dataset:")
 
-    with col1:
-        gender = st.selectbox("Genre", ["Female", "Male"])
-        senior = st.selectbox("Senior Citizen", [0, 1], format_func=lambda x: "Oui" if x == 1 else "Non")
-        partner = st.selectbox("Partenaire", ["No", "Yes"])
-        dependents = st.selectbox("Personnes à charge", ["No", "Yes"])
-        tenure = st.slider("Ancienneté (mois)", 0, 72, 2)
-        contract = st.selectbox("Type de contrat", ["Month-to-month", "One year", "Two year"])
-        paperless = st.selectbox("Facturation sans papier", ["Yes", "No"])
-        payment = st.selectbox(
-            "Moyen de paiement",
-            ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"],
-        )
-        monthly_charges = st.number_input("Frais mensuels ($)", min_value=0.0, max_value=200.0, value=70.70)
-        total_charges = st.number_input("Frais totaux ($)", min_value=0.0, max_value=10000.0, value=151.65)
+pages = st.navigation(
+    {
+        "Espace de travail": [
+            st.Page(
+                str(PROJECT_ROOT / "app" / "app_pages" / "overview.py"),
+                title="Vue d’ensemble",
+                icon=":material/dashboard:",
+                help="Consultez le modèle retenu, ses métriques réelles, les derniers essais MLflow et l’état des services.",
+            ),
+            st.Page(
+                str(PROJECT_ROOT / "app" / "app_pages" / "data_explorer.py"),
+                title="Exploration des données",
+                icon=":material/table_chart:",
+                help="Explorez le jeu de données réel, la répartition des résiliations, les valeurs manquantes et les variables.",
+            ),
+            st.Page(
+                str(PROJECT_ROOT / "app" / "app_pages" / "predictions.py"),
+                title="Prédictions",
+                icon=":material/online_prediction:",
+                help="Soumettez un profil client à l’API FastAPI et consultez son risque de résiliation calculé en direct.",
+            ),
+        ],
+        "Atelier de modèles": [
+            st.Page(
+                str(PROJECT_ROOT / "app" / "app_pages" / "experiments.py"),
+                title="Expériences AutoML",
+                icon=":material/science:",
+                help="Comparez les modèles candidats à partir des métriques MLflow et consultez l’évaluation finale.",
+            ),
+            st.Page(
+                str(PROJECT_ROOT / "app" / "app_pages" / "model_registry.py"),
+                title="Registre des modèles",
+                icon=":material/inventory_2:",
+                help="Consultez les versions enregistrées, leur statut, leurs métriques et le modèle servi par l’API.",
+            ),
+        ],
+        "Exploitation": [
+            st.Page(
+                str(PROJECT_ROOT / "app" / "app_pages" / "monitoring.py"),
+                title="Supervision",
+                icon=":material/monitoring:",
+                help="Vérifiez l’API et Prometheus et suivez le volume des requêtes, leur débit et leur latence.",
+            ),
+        ],
+    },
+    position="sidebar",
+)
 
-    with col2:
-        phone = st.selectbox("Service téléphonique", ["Yes", "No"])
-        multiple_lines = st.selectbox("Lignes multiples", ["No", "Yes", "No phone service"])
-        internet = st.selectbox("Service Internet", ["Fiber optic", "DSL", "No"])
-        online_security = st.selectbox("Sécurité en ligne", ["No", "Yes", "No internet service"])
-        online_backup = st.selectbox("Sauvegarde en ligne", ["No", "Yes", "No internet service"])
-        device_protection = st.selectbox("Protection appareil", ["No", "Yes", "No internet service"])
-        tech_support = st.selectbox("Support technique", ["No", "Yes", "No internet service"])
-        streaming_tv = st.selectbox("Streaming TV", ["No", "Yes", "No internet service"])
-        streaming_movies = st.selectbox("Streaming Films", ["No", "Yes", "No internet service"])
-
-    submitted = st.form_submit_button("🔍 Prédire le risque de résiliation", use_container_width=True)
-
-if submitted:
-    client_data = {
-        "gender": gender,
-        "SeniorCitizen": senior,
-        "Partner": partner,
-        "Dependents": dependents,
-        "tenure": tenure,
-        "PhoneService": phone,
-        "MultipleLines": multiple_lines,
-        "InternetService": internet,
-        "OnlineSecurity": online_security,
-        "OnlineBackup": online_backup,
-        "DeviceProtection": device_protection,
-        "TechSupport": tech_support,
-        "StreamingTV": streaming_tv,
-        "StreamingMovies": streaming_movies,
-        "Contract": contract,
-        "PaperlessBilling": paperless,
-        "PaymentMethod": payment,
-        "MonthlyCharges": monthly_charges,
-        "TotalCharges": total_charges,
-    }
-
-    result = predict_churn(client_data)
-    prob_pct = result["churn_probability"] * 100
-
-    st.divider()
-    st.metric("Probabilité de Churn", f"{prob_pct:.1f} %", delta=f"Seuil : {result['threshold']*100:.0f} %")
-
-    if result["churn_prediction"] == 1:
-        st.error(f"⚠️ **{result['risk_label']}** — Action de rétention recommandée.")
-    else:
-        st.success(f"✅ **{result['risk_label']}** — Client stable.")
+pages.run()
