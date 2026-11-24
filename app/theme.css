@@ -1,0 +1,174 @@
+.stApp {
+    background: #f5f7fb;
+}
+
+.stApp,
+.stApp p,
+.stApp label,
+.stApp li,
+.stApp [data-testid="stMarkdownContainer"] {
+    color: #243b64;
+}
+
+.stApp p,
+.stApp label,
+.stApp li,
+.stApp [data-testid="stCaptionContainer"] {
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+header[data-testid="stHeader"] {
+    background: rgba(245, 247, 251, 0.94);
+}
+
+section[data-testid="stSidebar"] {
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+}
+
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+    color: #64748b;
+}
+
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] {
+    padding-top: 0.35rem;
+}
+
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"] {
+    border-radius: 10px;
+    margin: 0.12rem 0;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:hover {
+    background: #eef2ff;
+    color: #344fba;
+}
+
+.block-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 1.25rem clamp(1.25rem, 2.4vw, 2.75rem) 2rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    color: #243b64;
+    letter-spacing: -0.025em;
+}
+
+h1 {
+    font-size: clamp(2rem, 2.5vw, 2.65rem) !important;
+}
+
+h2,
+h3 {
+    font-size: clamp(1.35rem, 1.65vw, 1.7rem) !important;
+}
+
+.st-key-page-hero {
+    background:
+        radial-gradient(circle at 90% 15%, rgba(69, 169, 198, 0.1), transparent 25%),
+        linear-gradient(115deg, #ffffff 0%, #f6f7ff 72%, #f3fbfd 100%);
+    border: 1px solid #e3e8f4;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(36, 59, 100, 0.06);
+    padding: 1rem 1.4rem 0.9rem;
+    margin-bottom: 1.1rem;
+}
+
+.st-key-page-hero [data-testid="stCaptionContainer"] {
+    color: #6d79a1;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+}
+
+div[class*="st-key-kpi-"],
+div[class*="st-key-panel-"] {
+    background: #ffffff;
+    border: 1px solid #e3e8f0;
+    border-radius: 15px;
+    box-shadow: 0 5px 16px rgba(36, 59, 100, 0.055);
+    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+div[class*="st-key-kpi-"]:hover,
+div[class*="st-key-panel-"]:hover {
+    border-color: #c9d4f4;
+    box-shadow: 0 9px 22px rgba(36, 59, 100, 0.09);
+    transform: translateY(-1px);
+}
+
+div[class*="st-key-kpi-"] [data-testid="stMetricValue"] {
+    color: #243b64;
+    font-size: clamp(1.45rem, 1.7vw, 1.9rem);
+}
+
+[data-testid="stMetricLabel"] {
+    color: #64748b;
+    font-size: 0.96rem;
+}
+
+.st-key-prediction-result {
+    border: 1px solid #c8d6f5;
+    border-radius: 18px;
+    background: linear-gradient(130deg, #ffffff, #f3f6ff 70%, #f0fafb);
+    box-shadow: 0 8px 24px rgba(36, 59, 100, 0.07);
+    padding: 1rem 1.25rem;
+}
+
+[data-testid="stDataFrame"],
+[data-testid="stTable"] {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+[data-testid="stSelectbox"] [data-baseweb="select"] > div,
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div {
+    background: #ffffff;
+}
+
+button[kind="primary"] {
+    box-shadow: 0 4px 10px rgba(73, 105, 216, 0.18);
+    transition: box-shadow 140ms ease, transform 140ms ease;
+}
+
+button[kind="primary"]:hover {
+    box-shadow: 0 7px 16px rgba(73, 105, 216, 0.24);
+    transform: translateY(-1px);
+}
+
+@media (min-width: 1600px) {
+    .block-container {
+        padding-left: 2.8rem;
+        padding-right: 2.8rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .block-container {
+        padding: 1rem 1rem 1.5rem;
+    }
+
+    .st-key-page-hero {
+        padding: 0.85rem 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .st-key-page-hero {
+        border-radius: 14px;
+    }
+
+    div[class*="st-key-kpi-"],
+    div[class*="st-key-panel-"] {
+        border-radius: 12px;
+    }
+}

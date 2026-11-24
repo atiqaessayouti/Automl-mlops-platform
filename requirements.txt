@@ -10,6 +10,7 @@ fastapi
 uvicorn[standard]
 streamlit
 mlflow
+dvc
 prometheus-fastapi-instrumentator
 pytest
 httpx

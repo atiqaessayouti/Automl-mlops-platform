@@ -5,23 +5,23 @@ stages:
     deps:
     - path: data/processed
       hash: md5
-      md5: 3b7500bce4816e4d6e4ae3c0dcab6e21.dir
-      size: 2724315
+      md5: 5c73c7a793ca8fa35c5b8765144bc2f7.dir
+      size: 2724200
       nfiles: 5
     - path: models/preprocessor.joblib
       hash: md5
-      md5: 614be6ccb4d53a17c2cf0140640348da
+      md5: 51fa01b7eec6f736f9d3baf109ee1045
       size: 7396
     - path: src/train.py
       hash: md5
-      md5: 9d9420c33080117edbed30804c8e5b5e
-      size: 4520
+      md5: 757b5f0d48ee57b5638896ee298c806c
+      size: 5409
     outs:
     - path: models/churn_pipeline.joblib
       hash: md5
-      md5: 22520d39049eeda266ee2241b63c0602
-      size: 1020826
+      md5: a9ee58001e15830c1abb6ebd6f269c04
+      size: 149423
     - path: reports/metrics.json
       hash: md5
-      md5: a20c7e03d8a72c81d3c195c54e23d827
-      size: 157
+      md5: 81b9325093eaa02eaa90adfc05761271
+      size: 170
