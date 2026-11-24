@@ -15,14 +15,9 @@ capture simulée n’est utilisée.
 | `prediction-form.png` | Formulaire de prédiction | 1920 × 1080 |
 | `prediction-result.png` | Résultat réel : 64,0 %, risque élevé, GradientBoosting | 571 × 431 |
 | `model-registry.png` | Registre affiché dans Streamlit | 1920 × 1080 |
-| `monitoring.png` | État des services affiché dans Streamlit | 1920 × 1080 |
+| `monitoring.png` | État des services affiché dans Streamlit; les graphiques sont plus bas dans la page | 1920 × 1080 |
 | `fastapi-swagger.png` | Documentation OpenAPI FastAPI | 1920 × 1080 |
 | `prometheus-targets.png` | Cible `automl-api` active dans Prometheus | 1920 × 1080 |
-
-`prediction-result-card.png` est une copie de la capture du résultat.
-`prediction-result-verified.png` est une capture de viewport incomplète ; elle
-ne constitue pas une preuve du résultat et ne doit pas être utilisée pour la
-soutenance.
 
 ## Inventaire demandé
 

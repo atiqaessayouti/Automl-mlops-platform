@@ -1,6 +1,6 @@
 # Tests et preuves locales
 
-État vérifié le 23 novembre 2026. Les contrôles ci-dessous portent sur les
+État vérifié le 24 novembre 2026. Les contrôles ci-dessous portent sur les
 fichiers et services présents sur la machine ; ils ne prouvent pas l’état d’un
 service distant ni d’une exécution GitHub Actions.
 
@@ -12,8 +12,8 @@ Commande complète après les corrections d’affichage :
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
-Résultat constaté après correction et redéploiement du dashboard :
-**15 réussis, 0 échoué** en 41,50 s. Deux tests dédiés
+Dernière exécution le 24 novembre 2026 après correction et redéploiement du
+dashboard : **15 réussis, 0 échoué** en 86,59 s. Deux tests dédiés
 vérifient que les graphiques comparatifs des pages Vue d’ensemble et
 Expériences ne superposent pas les scores F1 et ROC-AUC ; un autre vérifie
 l’exclusion des points de métriques non finis dans la page Supervision. Un
@@ -64,6 +64,10 @@ général.
 - Le formulaire a envoyé un profil réel à FastAPI : **64,0 %**, risque élevé,
   seuil 35 %, modèle GradientBoosting. Une requête API de contrôle distincte a
   renvoyé 0,294 (risque faible) pour un autre profil.
+- Le 24 novembre, les endpoints `localhost:8501/`, `localhost:8000/`,
+  `/health`, `/metrics`, `localhost:9090/-/healthy` et
+  `localhost:3000/api/health` ont tous répondu HTTP 200. Une nouvelle
+  prédiction API a répondu HTTP 200 avec une probabilité de 0,294.
 - Les graphiques sont rendus avec des séries réelles. Des avertissements Vega
   non bloquants persistent : liaison d’échelle sur des axes catégoriels,
   canal `yOffset` vide, et étendues infinies transitoires au premier rendu des
@@ -79,6 +83,8 @@ général.
 - `docker compose config --quiet` s’est terminé correctement.
 - Les quatre conteneurs étaient `Up` après la reconstruction ciblée du
   dashboard : API, Streamlit, Prometheus et Grafana.
+- Lors du contrôle du 24 novembre, les ports hôtes 8000, 8501, 9090 et 3000
+  étaient publiés et les endpoints de santé accessibles.
 - `docker compose build dashboard` a utilisé le cache des dépendances ; seul
   `automl-dashboard` a été recréé. Avant le build, C: disposait de
   9 017 081 856 octets libres. Aucun nettoyage, suppression d’image, suppression
