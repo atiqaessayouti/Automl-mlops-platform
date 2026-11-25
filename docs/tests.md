@@ -1,6 +1,6 @@
 # Tests et preuves locales
 
-État vérifié le 24 novembre 2026. Les contrôles ci-dessous portent sur les
+État vérifié le 25 novembre 2026. Les contrôles ci-dessous portent sur les
 fichiers et services présents sur la machine ; ils ne prouvent pas l’état d’un
 service distant ni d’une exécution GitHub Actions.
 
@@ -12,13 +12,12 @@ Commande complète après les corrections d’affichage :
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
-Dernière exécution le 24 novembre 2026 après correction et redéploiement du
-dashboard : **15 réussis, 0 échoué** en 86,59 s. Deux tests dédiés
-vérifient que les graphiques comparatifs des pages Vue d’ensemble et
-Expériences ne superposent pas les scores F1 et ROC-AUC ; un autre vérifie
-l’exclusion des points de métriques non finis dans la page Supervision. Un
-avertissement est conservé : `StarletteDeprecationWarning` indique que l’usage
-de `httpx` avec `starlette.testclient` est déprécié et recommande `httpx2`.
+Dernière exécution complète effectuée le 25 novembre 2026 après l’ajout de la préparation,
+l’optimisation Optuna et le correctif des noms de variables : **18 réussis,
+0 échoué, 1 avertissement**. L’avertissement `StarletteDeprecationWarning`
+concerne l’usage de `httpx` avec `starlette.testclient`. Cette exécution valide
+le code local; elle ne valide pas que les conteneurs en cours servent les
+derniers artefacts.
 
 ## Données, modèles et DVC
 
@@ -30,8 +29,14 @@ de `httpx` avec `starlette.testclient` est déprécié et recommande `httpx2`.
 | Cible train/test | Valeurs uniquement `0` et `1` |
 | Modèle final et préprocesseur | Présents localement |
 | `dvc status` | « Data and pipelines are up to date. » |
-| `dvc repro` | Stage `train_and_register` ignoré car inchangé ; pipeline à jour |
+| `dvc repro` | Succès ; 40 essais Optuna complétés (10 par modèle) |
 | Remote DVC | Absent ; `dvc status --cloud` échoue car aucun remote n’est défini |
+| Modèle local | GradientBoosting ; accuracy 0,7807, precision 0,5678, recall 0,7273, F1 0,6377, ROC-AUC 0,8454 |
+| Sélection | F1 validation 0,6537 au seuil 0,35 ; jeu test réservé à l’évaluation finale |
+
+La génération de prétraitement a aussi été exécutée dans un répertoire
+temporaire : les exports correspondaient aux CSV préparés existants; le
+préprocesseur est ajusté uniquement sur le train.
 
 ## FastAPI
 
@@ -46,14 +51,16 @@ Contrôle HTTP local sur `http://127.0.0.1:8000` :
 | `POST /predict` avec un profil client valide | HTTP 200 ; réponse du modèle réel |
 | `POST /predict` avec `tenure="not-a-number"` | HTTP 422, validation Pydantic |
 
-La prédiction de contrôle a renvoyé une probabilité de 0,1704 et la décision
-`Low Risk (Stay)` pour le profil fourni au test. Ce résultat n’est pas un KPI
-général.
+Le profil de contrôle identique a renvoyé 0,3468 avec le modèle local mis à
+jour et 0,294 avec l’API du conteneur encore actif. Les deux réponses indiquent
+un risque faible, mais cette différence confirme que le conteneur API ne sert
+pas le dernier artefact. Ces valeurs ne sont pas des KPI généraux.
 
 ## Streamlit
 
 - L’image du dashboard a été reconstruite le 23 novembre 2026 et le conteneur
-  recréé ; `localhost:8501` sert maintenant la version française.
+  sert la version française; il n’a pas été reconstruit après le dernier
+  entraînement Optuna.
 - Les six liens de navigation ont été activés dans le navigateur. Les six URL
   et titres de page attendus ont été observés, sans réponse HTTP 4xx/5xx pendant
   cette navigation.
@@ -62,9 +69,9 @@ général.
   et liens de navigation eux-mêmes ne sont pas en 404 ; les erreurs concernent
   ces requêtes relatives internes de Streamlit.
 - Le formulaire a envoyé un profil réel à FastAPI : **64,0 %**, risque élevé,
-  seuil 35 %, modèle GradientBoosting. Une requête API de contrôle distincte a
-  renvoyé 0,294 (risque faible) pour un autre profil.
-- Le 24 novembre, les endpoints `localhost:8501/`, `localhost:8000/`,
+  seuil 35 %, modèle GradientBoosting. Ce résultat provient de la version de
+  service capturée avant le dernier entraînement.
+- Le 25 novembre, les endpoints `localhost:8501/`, `localhost:8000/`,
   `/health`, `/metrics`, `localhost:9090/-/healthy` et
   `localhost:3000/api/health` ont tous répondu HTTP 200. Une nouvelle
   prédiction API a répondu HTTP 200 avec une probabilité de 0,294.
@@ -85,17 +92,16 @@ général.
   dashboard : API, Streamlit, Prometheus et Grafana.
 - Lors du contrôle du 24 novembre, les ports hôtes 8000, 8501, 9090 et 3000
   étaient publiés et les endpoints de santé accessibles.
-- `docker compose build dashboard` a utilisé le cache des dépendances ; seul
-  `automl-dashboard` a été recréé. Avant le build, C: disposait de
-  9 017 081 856 octets libres. Aucun nettoyage, suppression d’image, suppression
-  de volume ou de donnée n’a été effectué.
+- Aucun build n’a été effectué après le dernier entraînement. Lors du dernier
+  contrôle d’espace disponible, C: avait environ 6,45 Go libres et les images
+  API/dashboard occupaient environ 1,16 Go chacune. Aucun nettoyage,
+  suppression d’image, suppression de volume ou de donnée n’a été effectué.
 - Prometheus `/-/healthy` : HTTP 200.
 - Le target `automl-api` : `health=up`, et la requête Prometheus `up{job="automl-api"}` renvoie `1`.
-- Grafana `/api/health` : HTTP 200 et base `ok` (version 13.2.3).
-- La source de données Prometheus et le dashboard JSON sont provisionnés par
-  les fichiers locaux. Les API Grafana des datasources/recherches renvoient
-  HTTP 401 sans authentification ; aucun identifiant n’a été essayé et le
-  rendu des graphiques Grafana n’est donc pas confirmé.
+- Grafana `/api/health` : HTTP 200 et base `ok`; la capture authentifiée
+  `grafana-dashboard.png` montre la disponibilité API (`Last: 1`) et le débit
+  réel de requêtes.
+- La source Prometheus et le dashboard JSON sont provisionnés localement.
 
 ## CI, diff et secrets
 
@@ -108,8 +114,17 @@ général.
 
 ## Captures
 
-Les captures d’écran des six pages, du résultat de prédiction, de Swagger et
-des cibles Prometheus sont disponibles dans
-[docs/screenshots/](screenshots/README.md). Les vues Grafana, MLflow Tracking,
-prétraitement, résultat Pytest et conteneurs restent à capturer. Les six
+Les captures d’écran des six pages, du résultat de prédiction, de Swagger,
+des cibles Prometheus, du dashboard Grafana, de MLflow Tracking et du registre
+MLflow sont disponibles dans [docs/screenshots/](screenshots/README.md).
+L’architecture, le prétraitement, l’évaluation finale, Pytest et les
+conteneurs restent à capturer depuis des vues d’exécution authentiques. Les six
 captures historiques sous `screenshots/tests/` sont conservées.
+
+## Avertissements de l’entraînement
+
+L’exécution Optuna a également affiché l’avertissement scikit-learn concernant
+la dépréciation future de `SVC(probability=True)` et l’avertissement MLflow sur
+la désérialisation d’artefacts sérialisés. Ils n’ont pas été masqués et ne font
+pas échouer l’entraînement. MLflow UI fonctionne localement; MLflow n’est pas
+un service Docker Compose.

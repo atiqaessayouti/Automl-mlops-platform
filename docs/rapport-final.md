@@ -2,48 +2,51 @@
 
 - **Projet :** plateforme AutoML/MLOps de prédiction du churn télécom
 - **Référence :** `Document_de_cadrage_AutoML_MLOps (1).pdf`
-- **État du contrôle :** 23 novembre 2026
+- **État du contrôle :** 25 novembre 2026, complété par les captures MLflow locales
 - **Branche observée :** `feature/devops-deployment`
-**Périmètre :** audit et validation locale. Aucun commit, push, changement de
-branche, opération GitHub, suppression de données ou de volume. Seul le service
-dashboard a été reconstruit après autorisation.
+**Périmètre :** audit et validation locale. Aucun push, changement de branche,
+Pull Request, fusion, suppression de données ou de volume. Un build dashboard
+avait été réalisé lors de la validation antérieure; aucun build n’a été relancé
+après l’entraînement Optuna.
 
 ## Tableau de conformité
 
 | Domaine / exigence | État | Preuves et résultats |
 |---|---|---|
 | Dataset Telco et exploration | Terminé et vérifié | CSV brut présent : 7 043 × 21 ; notebook 01 et pages d’exploration disponibles |
-| Prétraitement et séparation | Terminé et vérifié | Notebook 02 ; séparation stratifiée 80/20 ; imputeurs/scaler/encodeur ajustés sur train ; artefacts vérifiés (5 634/1 409 × 45) |
+| Prétraitement et séparation | Terminé et vérifié | `src/preprocess.py` et notebook 02 ; séparation stratifiée 80/20 ; préprocesseur ajusté sur train ; exports comparés (5 634/1 409 × 45) |
 | Validation dédiée du schéma des données | Partiellement terminé | Le notebook contrôle les valeurs manquantes, doublons et formes ; aucune validation automatisée de schéma n’est intégrée au pipeline DVC |
-| Entraînement et comparaison AutoML | Terminé et vérifié | `src/train.py` compare quatre modèles, choisit sur F1 de validation, réentraîne sur train et évalue sur test ; `reports/metrics.json` cohérent |
-| Optimisation d’hyperparamètres | Partiellement terminé | Notebooks 03, 05 et 06 documentent GridSearchCV, RandomizedSearchCV et Optuna ; le stage d’entraînement actif ne les exécute pas et l’environnement standard ne dépend pas d’Optuna |
+| Entraînement et comparaison AutoML | Terminé et vérifié | `src/train.py` compare quatre modèles, choisit sur F1 de validation, réentraîne et évalue sur le jeu test réservé ; métriques vérifiées |
+| Optimisation d’hyperparamètres | Terminé et vérifié | Optuna/TPE intégré au stage actif : 10 essais par modèle, validation croisée stratifiée à 3 folds, 40 essais terminés |
 | Algorithme XGBoost envisagé | Non réalisé | Les quatre modèles actifs sont scikit-learn ; XGBoost n’est pas installé ni comparé dans le pipeline courant |
-| DVC et reproductibilité locale | Partiellement terminé | `dvc status` et `dvc repro` locaux : à jour ; le prétraitement notebook n’est pas un stage DVC |
+| DVC et reproductibilité locale | Partiellement terminé | `dvc status`/`dvc repro` réussis ; prétraitement réexécutable mais manuel avant le stage, pointeurs `.dvc` conservés |
 | Récupération DVC à distance | Impossible à vérifier | Aucun remote configuré ; `dvc status --cloud` échoue avec « no remote specified ». Les artefacts actuellement absents ne sont pas récupérables à distance |
-| MLflow Tracking et Registry | Partiellement terminé | SQLite locale : 10 runs, quatre candidats, modèle `TelcoChurnModel`, deux versions `READY`. Aucun serveur MLflow distant ni persistance Git vérifiés |
-| FastAPI et vraies prédictions | Terminé et vérifié | `/`, `/health`, `/docs`, `/metrics` HTTP 200 ; vraie prédiction HTTP 200 ; entrée `tenure` invalide HTTP 422 |
-| Streamlit — six pages et API | Partiellement terminé | Image française reconstruite ; six pages ouvertes par la navigation sans échec HTTP ; prédiction réelle via le formulaire (64,0 %, risque élevé). Avertissements Vega non bloquants et 404 observées uniquement sur deux sondes internes après accès direct |
-| Docker Compose et quatre services | Partiellement terminé | `docker compose config --quiet` valide ; les quatre conteneurs `Up`, dashboard reconstruit seul. Healthchecks non configurés et `depends_on` reste sur `service_started` |
+| MLflow Tracking et Registry | Partiellement terminé | Base SQLite locale : 15 runs et trois versions `READY`; interface Tracking et registre capturés. Pas de service Compose ni de stockage partagé |
+| FastAPI et vraies prédictions | Partiellement terminé | Endpoints et validation vérifiés HTTP 200/422; l’API conteneurisée sert encore l’ancien artefact, différent du modèle local entraîné |
+| Streamlit — six pages et API | Partiellement terminé | Six pages et appel API réel vérifiés; captures de la version française antérieure. Le conteneur n’est pas reconstruit avec les artefacts Optuna récents |
+| Docker Compose et quatre services | Partiellement terminé | Configuration valide et quatre services actifs au dernier contrôle; images API/dashboard périmées par rapport aux artefacts locaux. Pas de build après le dernier entraînement |
 | Prometheus | Terminé et vérifié | `/‑/healthy` HTTP 200 ; target `automl-api` sain ; métrique `up=1` |
-| Grafana | Partiellement terminé | `/api/health` HTTP 200 ; source et dashboard provisionnés. L’API de consultation renvoie 401 sans authentification ; rendu du dashboard non confirmé pendant cet audit |
-| Pytest local | Terminé et vérifié | 15 tests réussis, aucun échec ; un avertissement Starlette/httpx |
+| Grafana | Terminé et vérifié | `/api/health` HTTP 200; dashboard consulté avec authentification, capture montrant API disponible et requêtes |
+| Pytest local | Terminé et vérifié | 18 tests réussis, 0 échec, 1 avertissement Starlette/httpx |
 | GitHub Actions / CI-CD | Partiellement terminé | Workflow présent et lance pytest sur push/PR ; aucun run distant vérifié, conformément à l’interdiction de publication |
-| Documentation finale | Partiellement terminé | README, installation, architecture, tests et rapport actualisés ; certaines preuves et captures opérationnelles restent à produire |
-| Captures de démonstration | Partiellement terminé | Captures réelles des six pages, d’une prédiction, de Swagger et de Prometheus. Captures Grafana, Pytest, Docker, prétraitement et certaines vues d’évaluation restent manquantes |
+| Documentation finale | Partiellement terminé | README, installation, architecture, tests et rapport actualisés; captures authentiques et limitations recensées |
+| Captures de démonstration | Partiellement terminé | Captures réelles du dashboard, prédiction, Swagger, Prometheus, Grafana, MLflow Tracking et Registry; architecture, prétraitement, évaluation, Pytest et Docker manquent |
 | Secrets publiables | Terminé et vérifié | Recherche de motifs de clés et secrets dans les fichiers suivis : aucun résultat ; pas de `.env*` à la racine |
 
 ## Résultats réels actuellement disponibles
 
 Le rapport local `reports/metrics.json` indique le GradientBoosting au seuil
-0,35 : accuracy 0,7764, precision 0,5626, recall 0,7086, F1 0,6272 et ROC-AUC
-0,8434. Les données préparées sont non vides, sans valeurs manquantes dans les
-matrices encodées, et la cible est `0/1`.
+0,35 : accuracy 0,7807, precision 0,5678, recall 0,7273, F1 0,6377 et ROC-AUC
+0,8454. Son F1 de validation est 0,6537. Les données préparées sont non vides,
+sans valeurs manquantes dans les matrices encodées, et la cible est `0/1`.
 
-Après la reconstruction ciblée, les quatre conteneurs sont `Up`. L’API, ses
-métriques, Prometheus et Grafana health répondent HTTP 200 ; la cible Prometheus
-`automl-api` est `up=1`. Une prédiction directe a renvoyé 0,294 (risque faible)
-pour son profil. Le formulaire Streamlit a renvoyé 64,0 % (risque élevé) pour
-un profil différent. Les six pages françaises sont servies sur 8501.
+Les quatre conteneurs étaient `Up` au dernier contrôle; l’API, Prometheus et
+Grafana répondent. La cible `automl-api` vaut `up=1`, et Grafana a été inspecté
+visuellement. Toutefois, le même profil de contrôle donne 0,294 dans le
+conteneur et 0,3468 avec l’artefact local Optuna (risque faible dans les deux
+cas) : l’API conteneurisée n’est pas alignée sur le modèle nouvellement entraîné.
+La prédiction Streamlit capturée (64,0 %, risque élevé) provient de la version
+de service antérieure.
 
 ## Corrections appliquées pendant cet audit
 
@@ -56,57 +59,58 @@ un profil différent. Les six pages françaises sont servies sur 8501.
 - L’exploration sélectionne explicitement les types `object` et `str` pour
   éviter `Pandas4Warning` ; les logs après reconstruction ne montrent plus cet
   avertissement.
+- `src/preprocess.py` rend le prétraitement réexécutable avec ajustement du
+  transformateur sur le seul train, puis export des jeux train/test et du
+  préprocesseur.
+- `src/train.py` intègre Optuna/TPE aux quatre modèles, enregistre les essais,
+  sélectionne le meilleur modèle sur le F1 de validation et consigne les
+  métriques dans MLflow.
+- `src/predict.py` conserve les noms des variables transformées lors de
+  l’inférence, supprimant l’avertissement de noms de variables sur la
+  prédiction locale.
 - L’image du seul service dashboard a été reconstruite avec le cache des
   dépendances, puis le conteneur dashboard recréé. Aucun autre service, volume,
   image ou jeu de données n’a été supprimé.
 - Documentation française créée ou complétée dans `README.md` et `docs/`.
 - Les six pages ont été vérifiées dans le navigateur ; la capture du résultat
   montre une vraie prédiction et l’API a également été testée directement.
+- Captures authentiques ajoutées pour Grafana et les interfaces MLflow Tracking
+  et Registry.
 
-## Fichiers modifiés dans l’état courant
+## Fichiers inclus dans la livraison locale
 
-Les changements préexistants au début de cette mission sont conservés. Les
-fichiers créés/modifiés pour ce rapport sont :
+- Documentation : `README.md`, `docs/architecture.md`,
+  `docs/installation.md`, `docs/tests.md`, `docs/rapport-final.md`,
+  `docs/screenshots/README.md`.
+- Pipeline et dépendances : `src/preprocess.py`, `src/train.py`,
+  `src/predict.py`, `requirements.txt`, `dvc.yaml`, `dvc.lock`.
+- Résultats : `reports/metrics.json`, `reports/.gitignore`.
+- Tests : `tests/test_preprocess.py`, `tests/test_train.py`,
+  `tests/test_predict.py`.
+- Captures ajoutées dans ce suivi : `docs/screenshots/grafana-dashboard.png`,
+  `docs/screenshots/mlflow-tracking.png`,
+  `docs/screenshots/mlflow-registry.png`.
 
-- `README.md`
-- `app/app_pages/overview.py`
-- `app/app_pages/experiments.py`
-- `docs/architecture.md`
-- `docs/installation.md`
-- `docs/tests.md`
-- `docs/rapport-final.md`
-- `docs/screenshots/README.md`
-- `docs/screenshots/fastapi-swagger.png`
-- `docs/screenshots/prometheus-targets.png`
-- `app/app_pages/monitoring.py`
-- `app/app_pages/data_explorer.py`
-- `tests/test_streamlit_app.py`
-- `docs/screenshots/overview.png`
-- `docs/screenshots/data-explorer.png`
-- `docs/screenshots/experiments.png`
-- `docs/screenshots/model-registry.png`
-- `docs/screenshots/monitoring.png`
-- `docs/screenshots/prediction-form.png`
-- `docs/screenshots/prediction-result.png`
-
-Les fichiers et captures préexistants ne sont pas supprimés.
+Les autres captures existantes et les changements déjà présents avant cette
+séquence sont conservés. Aucun fichier n’a été supprimé.
 
 ## Tâches restantes avant une validation finale
 
-1. Examiner les avertissements Vega résiduels (`yOffset`, liaison d’échelle,
-   étendues infinies transitoires) si une console sans avertissement est exigée.
-   Les graphiques s’affichent avec les données réelles après chargement.
-2. Vérifier visuellement le dashboard Grafana avec un accès authentifié fourni ;
-   aucune authentification n’a été tentée.
-3. Décider si Optuna doit être intégré au pipeline DVC actif, plutôt que
-   maintenu dans un notebook autonome.
-4. Choisir et autoriser un stockage DVC si la récupération distante est
-   nécessaire. Aucun remote fictif ne doit être ajouté.
-5. Capturer les vues manquantes de prétraitement, résultats finaux, Pytest,
-   Docker, Grafana et MLflow Tracking. Aucun serveur MLflow n’est configuré dans
-   Compose, et les données de runs ne sont que locales.
-6. Ne capturer GitHub Actions qu’après autorisation de publication ; aucun
-   commit, push, PR ou run CI distant n’a été effectué.
+1. Réconcilier le service API et le dashboard avec les derniers artefacts
+   Optuna. Avant un build ciblé, revérifier l’espace libre et demander
+   l’autorisation requise; ne supprimer ni images, ni volumes, ni données.
+2. Capturer les vues manquantes de l’architecture, du prétraitement, de
+   l’évaluation finale, de Pytest et des conteneurs depuis des exécutions
+   réelles.
+3. Le prétraitement reste manuel avant le stage DVC; l’ajouter au pipeline
+   nécessite une stratégie compatible avec les pointeurs DVC déjà suivis.
+4. Choisir et autoriser un stockage DVC uniquement si la récupération distante
+   est nécessaire. Aucun remote fictif ne doit être ajouté.
+5. Examiner si une sortie sans avertissement est exigée : Vega au premier
+   rendu, Starlette/httpx, `SVC(probability=True)` et désérialisation MLflow
+   sont signalés sans masquer les avertissements.
+6. Ne vérifier GitHub Actions distant ni publier les changements qu’après
+   autorisation explicite. Aucun push ou PR n’a été effectué.
 
 **Aucune publication GitHub n’a été effectuée.** La phase de publication reste
 bloquée jusqu’à une autorisation explicite.

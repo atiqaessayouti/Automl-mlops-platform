@@ -12,16 +12,28 @@ stages:
       hash: md5
       md5: 51fa01b7eec6f736f9d3baf109ee1045
       size: 7396
+    - path: requirements.txt
+      hash: md5
+      md5: b3347cebd09c7325ed0f7faabaf3884d
+      size: 184
     - path: src/train.py
       hash: md5
-      md5: 757b5f0d48ee57b5638896ee298c806c
-      size: 5409
+      md5: 0ecb7815bf8528a1fac05658ac2c2566
+      size: 13954
     outs:
     - path: models/churn_pipeline.joblib
       hash: md5
-      md5: a9ee58001e15830c1abb6ebd6f269c04
-      size: 149423
+      md5: 1bf21dbb8a03fcd7d5a1d67bb648d57c
+      size: 68096
     - path: reports/metrics.json
       hash: md5
-      md5: 81b9325093eaa02eaa90adfc05761271
-      size: 170
+      md5: 871e38de87588a1e7bb9a9ddb015b782
+      size: 388
+    - path: reports/optuna_best_params.json
+      hash: md5
+      md5: 248ad250e4be3ae9173c0945fce5cd48
+      size: 1204
+    - path: reports/optuna_trials.csv
+      hash: md5
+      md5: a46b541d13f658f425dea9aa4d24199d
+      size: 7095

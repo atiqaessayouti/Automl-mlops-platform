@@ -18,6 +18,9 @@ capture simulée n’est utilisée.
 | `monitoring.png` | État des services affiché dans Streamlit; les graphiques sont plus bas dans la page | 1920 × 1080 |
 | `fastapi-swagger.png` | Documentation OpenAPI FastAPI | 1920 × 1080 |
 | `prometheus-targets.png` | Cible `automl-api` active dans Prometheus | 1920 × 1080 |
+| `grafana-dashboard.png` | Dashboard Grafana authentifié : disponibilité API et requêtes | 1920 × 1080 |
+| `mlflow-tracking.png` | Runs de l’expérience AutoML dans l’interface MLflow locale | 1920 × 1080 |
+| `mlflow-registry.png` | Registre MLflow local et versions enregistrées | 1920 × 1080 |
 
 ## Inventaire demandé
 
@@ -30,17 +33,19 @@ capture simulée n’est utilisée.
 | 5 | Expérimentations AutoML | Capturée : `experiments.png` |
 | 6 | Comparaison des modèles | Capturée : page Expériences, métriques réelles |
 | 7 | Résultats finaux d’évaluation | À capturer séparément depuis `reports/metrics.json` |
-| 8 | MLflow Tracking | Non disponible en interface : aucun serveur MLflow n’est déployé |
-| 9 | Model Registry | Capturée dans Streamlit : `model-registry.png` ; interface MLflow non déployée |
+| 8 | MLflow Tracking | Capturée : `mlflow-tracking.png` (interface locale, non déployée par Compose) |
+| 9 | Model Registry | Capturé dans Streamlit (`model-registry.png`) et MLflow (`mlflow-registry.png`) |
 | 10 | Formulaire de prédiction | Capturé : `prediction-form.png` |
 | 11 | Résultat d’une prédiction réelle | Capturé : `prediction-result.png` |
 | 12 | Monitoring Streamlit | Partielle : états de service capturés ; graphiques hors viewport |
 | 13 | Cibles Prometheus | Capturée : `prometheus-targets.png` |
-| 14 | Dashboard Grafana | Non vérifiée ; authentification requise, aucun identifiant fourni |
+| 14 | Dashboard Grafana | Capturé : `grafana-dashboard.png` après authentification locale |
 | 15 | Documentation Swagger FastAPI | Capturée : `fastapi-swagger.png` |
 | 16 | Résultat Pytest | À capturer depuis une exécution réelle |
 | 17 | Conteneurs Docker actifs | À capturer |
 | 18 | GitHub Actions | Bloqué jusqu’à l’autorisation explicite de publication |
 
 Les six captures historiques de `screenshots/tests/` sont conservées et ne
-représentent pas la version finale du dashboard.
+représentent pas la version finale du dashboard. Les captures MLflow montrent
+la base locale après le dernier entraînement Optuna; elles ne prouvent pas que
+les conteneurs API/dashboard ont été reconstruits avec ces artefacts.

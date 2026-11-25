@@ -3,10 +3,13 @@ stages:
     cmd: python src/train.py
     deps:
       - src/train.py
+      - requirements.txt
       - data/processed
       - models/preprocessor.joblib
     outs:
       - models/churn_pipeline.joblib
+      - reports/optuna_trials.csv
+      - reports/optuna_best_params.json
     metrics:
       - reports/metrics.json:
           cache: false

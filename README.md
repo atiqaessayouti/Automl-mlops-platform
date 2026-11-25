@@ -5,15 +5,18 @@ plateforme AutoML/MLOps pour entraîner, évaluer, déployer et superviser des
 modèles de Machine Learning**. Le cas d’usage est la prédiction de résiliation
 de clients d’un opérateur télécom à partir du dataset Telco Customer Churn.
 
-> **État vérifié le 24 novembre 2026 :** Pytest : **15 réussis, 0 échec,
+> **État vérifié le 25 novembre 2026 :** Pytest : **18 réussis, 0 échec,
 > 1 avertissement** Starlette/httpx.
 > Les captures du dashboard et les résultats de prédiction ci-dessous ont été
 > obtenus sur la version française déployée localement le 23 novembre 2026.
-> Lors du dernier contrôle local, les quatre services Docker répondaient sur
-> leurs ports publiés et une prédiction API réelle a réussi.
-> Aucun run GitHub Actions distant n’a été vérifié. Le remote DVC est absent;
-> les données préparées et les métadonnées MLflow locales ne sont pas publiées
-> dans Git.
+> Les quatre services Docker sont encore actifs, mais les images API/dashboard
+> en cours d’exécution contiennent des artefacts antérieurs au dernier
+> entraînement Optuna. Pour le même profil, l’API conteneurisée renvoie 0,294
+> et le modèle local mis à jour 0,3468 (les deux indiquent un risque faible).
+> Aucun build n’a été relancé dans cette vérification.
+> Aucun run GitHub Actions distant n’a été vérifié. Aucun remote DVC n’est
+> configuré; les données préparées et les métadonnées MLflow locales ne sont
+> pas publiées dans Git.
 
 ## Présentation
 
@@ -71,16 +74,24 @@ La page Supervision affiche les états de FastAPI, Prometheus et MLflow.
 
 ![État des services dans la page Supervision](docs/screenshots/monitoring.png)
 
-Les captures complémentaires de [Swagger](docs/screenshots/fastapi-swagger.png)
-et des [cibles Prometheus](docs/screenshots/prometheus-targets.png), ainsi que
-l’inventaire et les limites des captures, sont dans
+Les interfaces locales MLflow montrent les runs de l’expérience et le registre
+des versions, sans impliquer qu’un serveur MLflow soit déployé par Compose.
+
+![Runs MLflow issus de l’entraînement AutoML](docs/screenshots/mlflow-tracking.png)
+
+![Registre MLflow local](docs/screenshots/mlflow-registry.png)
+
+Les captures complémentaires de [Swagger](docs/screenshots/fastapi-swagger.png),
+des [cibles Prometheus](docs/screenshots/prometheus-targets.png) et du
+[dashboard Grafana](docs/screenshots/grafana-dashboard.png), ainsi que
+l’inventaire des captures, sont dans
 [docs/screenshots/](docs/screenshots/README.md).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    CSV[Dataset Telco brut] --> PREP[Notebook de prétraitement]
+    CSV[Dataset Telco brut] --> PREP[src/preprocess.py et notebook 02]
     PREP --> DATA[Données train/test préparées]
     DATA --> DVC[DVC local]
     PREP --> TRAIN[src/train.py]
@@ -116,7 +127,8 @@ pas de service MLflow dans le fichier Compose actuel.
 Le dataset brut attendu est
 `data/raw/Telco-Customer-Churn.csv` (7 043 lignes × 21 colonnes). Le notebook
 [`notebooks/02_data_preprocessing.ipynb`](notebooks/02_data_preprocessing.ipynb)
-réalise le nettoyage et les opérations suivantes :
+documente les transformations; le script
+[`src/preprocess.py`](src/preprocess.py) permet de les réexécuter localement :
 
 - séparation stratifiée entraînement/test selon une proportion 80/20 ;
 - imputation et transformations adaptées aux types de variables ;
@@ -127,8 +139,11 @@ réalise le nettoyage et les opérations suivantes :
 
 Dimensions vérifiées : train **5 634 × 45**, test **1 409 × 45**. Les deux
 matrices ne sont pas vides et les valeurs des cibles sont limitées à `0` et `1`.
-Le prétraitement est effectué dans le notebook ; il n’est pas encore une étape
-du pipeline DVC.
+Le préprocesseur est ajusté uniquement sur le jeu train, puis appliqué au test.
+Le script a été exécuté dans un répertoire temporaire : ses quatre exports
+étaient identiques aux fichiers préparés existants. Le prétraitement reste une
+étape manuelle avant `dvc repro`; le pipeline DVC courant commence à
+l’entraînement afin de conserver les pointeurs `.dvc` existants.
 
 ## Entraînement AutoML et évaluation
 
@@ -139,10 +154,12 @@ du pipeline DVC.
 - Gradient Boosting ;
 - SVM.
 
-Une validation interne stratifiée est utilisée pour la sélection selon le
-**F1-score** au seuil fixé. Le modèle sélectionné est ensuite réentraîné sur
-l’ensemble d’entraînement et évalué sur le jeu test séparé. Les métriques
-suivantes sont produites : accuracy, precision, recall, F1-score et ROC-AUC.
+Optuna/TPE explore dix configurations par candidat avec une validation croisée
+stratifiée à trois folds sur la partition d’entraînement interne. Les quatre
+candidats sont comparés sur une partition de validation distincte au F1-score
+avec un seuil de 0,35. Le jeu test reste réservé à l’évaluation finale. Le
+meilleur candidat est réentraîné sur l’ensemble train. Les métriques produites
+sont accuracy, precision, recall, F1-score et ROC-AUC.
 
 Résultats présents dans `reports/metrics.json` lors de la dernière validation
 documentée :
@@ -151,37 +168,40 @@ documentée :
 |---|---:|
 | Modèle retenu | GradientBoosting |
 | Seuil de décision | 0,35 |
-| Accuracy | 0,7764 |
-| Precision | 0,5626 |
-| Recall | 0,7086 |
-| F1-score | 0,6272 |
-| ROC-AUC | 0,8434 |
+| Accuracy | 0,7807 |
+| Precision | 0,5678 |
+| Recall | 0,7273 |
+| F1-score | 0,6377 |
+| ROC-AUC | 0,8454 |
 
 Ces métriques dépendent des données, du code et des artefacts effectivement
-entraînés. Le notebook
+entraînés. Le stage DVC journalise les paramètres et métriques Optuna dans
+MLflow et exporte `reports/optuna_trials.csv` ainsi que
+`reports/optuna_best_params.json`. Le notebook
 [`notebooks/06_mlflow_optuna.ipynb`](notebooks/06_mlflow_optuna.ipynb)
-documente une étude Optuna séparée ; elle n’est pas intégrée à l’entraînement
-actif DVC. XGBoost, mentionné dans les technologies envisagées du cadrage,
-n’est pas installé ni comparé par le pipeline courant.
+reste une étude complémentaire. XGBoost n’a pas été retenu dans le pipeline
+actif; les quatre candidats restent scikit-learn.
 
 ## DVC et MLflow
 
 ### DVC
 
-`dvc.yaml` orchestre le stage d’entraînement. Les données préparées et le
+`dvc.yaml` orchestre le stage d’entraînement et déclare ses dépendances,
+artefacts finaux, métriques et résultats Optuna. Les données préparées et le
 préprocesseur sont référencés par `data/processed.dvc` et
-`models/preprocessor.joblib.dvc`. `dvc status` et `dvc repro` ont indiqué que
-le pipeline local était à jour.
+`models/preprocessor.joblib.dvc`.
 
-**Aucun remote DVC n’est configuré.** Les données/artefacts ignorés par Git ne
-peuvent pas être restaurés sur une autre machine par DVC tant qu’un stockage
-autorisé n’est pas configuré. Aucun identifiant ni remote fictif n’est inclus.
+**Aucun remote DVC n’est configuré, conformément au choix de stockage local.**
+Les données préparées et modèles conservés dans le cache DVC local ne seront
+pas récupérables par `dvc pull` sur une autre machine. Le CSV brut est suivi
+dans Git et les exports peuvent être régénérés avec `python src/preprocess.py`.
+Aucun identifiant ni remote fictif n’est inclus.
 
 ### MLflow
 
 Le tracking et le Model Registry sont enregistrés dans une base SQLite locale
-(`mlflow.db`) et les artefacts correspondants sous `mlruns/`. Au dernier audit,
-la base contenait 10 runs, quatre candidats et deux versions `READY` de
+(`mlflow.db`) et les artefacts correspondants sous `mlruns/`. Après l’exécution
+Optuna, la base contient 15 runs et trois versions `READY` de
 `TelcoChurnModel`. Ces fichiers locaux sont exclus de Git. Aucun serveur MLflow
 n’est déployé par Compose ; une nouvelle machine ne disposera pas de cet
 historique sans mécanisme de partage dédié.
@@ -258,10 +278,9 @@ l’API par une simulation : le profil soumis est envoyé au service FastAPI.
 
 Prometheus collecte les métriques exposées par FastAPI sur
 `api:8000/metrics`. La cible `automl-api` a été vérifiée `up=1`. Grafana est
-provisionné avec une source Prometheus et un dashboard API. Son endpoint de
-santé a répondu correctement, mais le rendu visuel du dashboard Grafana n’a pas
-été revérifié lors du dernier contrôle; son API de consultation demande une
-authentification.
+provisionné avec une source Prometheus et un dashboard API. Le dashboard a été
+ouvert après authentification et une capture réelle est disponible dans
+[`docs/screenshots/grafana-dashboard.png`](docs/screenshots/grafana-dashboard.png).
 
 ## Tests et état de validation
 
@@ -271,11 +290,13 @@ Exécuter les tests depuis la racine du dépôt :
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
-Dernier résultat rejoué le 24 novembre 2026 en 86,59 s :
-**15 passed, 0 failed, 1 warning**
+Dernier résultat rejoué le 24 novembre 2026 :
+**18 passed, 0 failed, 1 warning**
 (`StarletteDeprecationWarning` concernant l’usage de `httpx` avec
-`starlette.testclient`). Les tests couvrent les routes API, les pages Streamlit,
-l’appel de prédiction et certains comportements de graphiques.
+`starlette.testclient`). Les tests couvrent les routes API, les six pages
+Streamlit, l’appel de prédiction, les comportements de graphiques, le
+prétraitement, une recherche Optuna représentative et la préservation des noms
+de variables transformées à la prédiction.
 
 Autres vérifications documentées :
 
@@ -307,13 +328,12 @@ py -3.11 -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-# Placer le dataset source à data/raw/Telco-Customer-Churn.csv puis
-# exécuter le notebook 02 pour régénérer les données et le préprocesseur.
-jupyter lab
+# Régénérer les données préparées et le préprocesseur à partir du CSV brut
+.\.venv\Scripts\python.exe src\preprocess.py
 
 # Contrôler et exécuter le stage DVC après la préparation des données
-dvc status
-dvc repro
+.\.venv\Scripts\dvc.exe status
+.\.venv\Scripts\dvc.exe repro
 
 # Vérifier puis démarrer les quatre services
 docker compose config
@@ -324,15 +344,19 @@ docker compose ps
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
-Pour reconstruire uniquement le dashboard après une modification de son code :
+Pour aligner l’API et le dashboard sur les artefacts locaux après autorisation
+explicite et contrôle de l’espace disque :
 
 ```powershell
-docker compose build dashboard
-docker compose up -d --no-deps dashboard
+docker compose build api dashboard
+docker compose up -d --no-deps api dashboard
 ```
 
-Ces commandes ne suppriment pas les volumes. Aucun déploiement cloud, stockage
-DVC distant ou service payant n’est configuré.
+Ces commandes n’ont pas été exécutées après l’entraînement Optuna et ne
+suppriment pas les volumes. Au dernier contrôle, C: disposait d’environ
+4,99 Go libres; la place réellement requise dépend des couches intermédiaires
+du build. Aucun déploiement cloud, stockage DVC distant ou service payant
+n’est configuré.
 
 ## Captures d’écran
 
@@ -346,14 +370,20 @@ finale actuelle.
 
 - Configurer un remote DVC choisi et autorisé si les données doivent être
   récupérables depuis une autre machine.
-- Décider si Optuna doit être intégré au pipeline actif ; son étude reste
-  actuellement dans un notebook autonome.
-- Le prétraitement du notebook n’est pas un stage DVC.
+- Le prétraitement est reproductible via `src/preprocess.py`, mais reste une
+  étape locale manuelle avant `dvc repro`, afin de préserver les pointeurs DVC
+  existants.
 - MLflow est local, sans serveur Compose ni stockage partagé.
-- Vérifier visuellement Grafana avec des identifiants autorisés.
-- Examiner les avertissements Vega et le warning de dépréciation Starlette/httpx.
-- Compléter les captures de prétraitement, résultats d’évaluation, Pytest et
-  conteneurs Docker ; la capture GitHub Actions dépend d’un run autorisé.
+- Les conteneurs API/dashboard ne servent pas encore le modèle et les métriques
+  du dernier entraînement Optuna. Un build ciblé nécessitera une vérification
+  de l’espace disque et une autorisation explicite; aucune image ni donnée ne
+  doit être supprimée.
+- Des avertissements non bloquants restent à examiner : Vega au premier rendu,
+  dépréciation Starlette/httpx, dépréciation de `SVC(probability=True)` et
+  avertissement MLflow sur le chargement d’artefacts sérialisés.
+- Compléter les captures de l’architecture, du prétraitement, de l’évaluation,
+  de Pytest et des conteneurs. La capture GitHub Actions dépend d’une
+  publication autorisée.
 
 Aucun commit, push, merge ou publication distante n’est déclenché par les
 commandes ci-dessus. Voir le

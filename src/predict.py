@@ -27,7 +27,10 @@ def predict_churn(client_data: dict) -> dict:
             df["TotalCharges"], errors="coerce"
         )
 
-    X_processed = artifact["preprocessor"].transform(df)
+    X_processed = pd.DataFrame(
+        artifact["preprocessor"].transform(df),
+        columns=artifact["preprocessor"].get_feature_names_out(),
+    )
     prob = float(
         artifact["model"].predict_proba(X_processed)[0, 1]
     )

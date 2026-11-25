@@ -11,6 +11,7 @@ uvicorn[standard]
 streamlit
 mlflow
 dvc
+optuna>=3.5
 prometheus-fastapi-instrumentator
 pytest
 httpx
