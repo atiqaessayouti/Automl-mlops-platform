@@ -18,9 +18,9 @@ de clients d’un opérateur télécom à partir du dataset Telco Customer Churn
 > Les quatre services Docker sont actifs. Les images API et dashboard ont été
 > reconstruites après l’entraînement Optuna; l’API conteneurisée et le modèle
 > local renvoient tous deux 0,3468 pour le même profil de contrôle.
-> Le workflow GitHub Actions sera vérifié après publication. Aucun remote DVC
-> n’est configuré; les données préparées et les métadonnées MLflow locales ne
-> sont pas publiées dans Git.
+> Le workflow GitHub Actions sur `main` a réussi pour le commit `736045f`.
+> Aucun remote DVC n’est configuré; les données préparées et les métadonnées
+> MLflow locales ne sont pas publiées dans Git.
 
 ## Présentation
 
@@ -389,7 +389,8 @@ finale actuelle.
   dépréciation Starlette/httpx, dépréciation de `SVC(probability=True)` et
   avertissement MLflow sur le chargement d’artefacts sérialisés.
 - Compléter les captures de l’architecture, du prétraitement, de Pytest et des
-  conteneurs. La capture GitHub Actions dépend du workflow après publication.
+  conteneurs. Le workflow GitHub Actions a réussi, mais sa capture d’écran
+  reste à enregistrer.
 
 Aucun commit, push, merge ou publication distante n’est déclenché par les
 commandes ci-dessus. Voir le

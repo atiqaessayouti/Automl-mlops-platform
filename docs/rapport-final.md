@@ -9,6 +9,7 @@
 - **État du contrôle :** 25 novembre 2026, complété par les captures MLflow locales
 - **Branche de travail :** `feature/devops-deployment`
 - **Branche de livraison :** `main`
+- **Commit publié vérifié :** `736045f`
 **Périmètre :** audit et validation locale, puis publication sur `origin/main`
 après intégration et contrôles finaux. Aucun nettoyage destructif ni suppression
 de données ou de volume n’a été effectué.
@@ -32,9 +33,9 @@ de données ou de volume n’a été effectué.
 | Prometheus | Terminé et vérifié | `/‑/healthy` HTTP 200 ; target `automl-api` sain ; métrique `up=1` |
 | Grafana | Terminé et vérifié | `/api/health` HTTP 200; dashboard consulté avec authentification, capture montrant API disponible et requêtes |
 | Pytest local | Terminé et vérifié | 20 tests réussis, 0 échec, 1 avertissement Starlette/httpx |
-| GitHub Actions / CI-CD | Partiellement terminé | Workflow présent et lance pytest sur push/PR ; aucun run distant vérifié, conformément à l’interdiction de publication |
+| GitHub Actions / CI-CD | Terminé et vérifié | Run #6 sur `main` (`736045f`) : job `test` et étape Pytest réussis |
 | Documentation finale | Partiellement terminé | README, installation, architecture, tests et rapport actualisés; captures authentiques et limitations recensées |
-| Captures de démonstration | Partiellement terminé | Captures réelles du dashboard, prédiction, évaluation, Swagger, Prometheus, Grafana, MLflow Tracking et Registry; architecture, prétraitement, Pytest et Docker manquent |
+| Captures de démonstration | Partiellement terminé | Captures réelles du dashboard, prédiction, évaluation, Swagger, Prometheus, Grafana, MLflow Tracking et Registry; architecture, prétraitement, Pytest, Docker et CI manquent |
 | Secrets publiables | Terminé et vérifié | Recherche de motifs de clés et secrets dans les fichiers suivis : aucun résultat ; pas de `.env*` à la racine |
 
 ## Résultats réels actuellement disponibles
@@ -110,7 +111,5 @@ séquence sont conservés. Aucun fichier n’a été supprimé.
 4. Examiner si une sortie sans avertissement est exigée : Vega au premier
    rendu, Starlette/httpx, `SVC(probability=True)` et désérialisation MLflow
    sont signalés sans masquer les avertissements.
-5. Vérifier le résultat du workflow GitHub Actions déclenché par la publication.
-
-La publication sur `origin/main` et le résultat du workflow CI seront renseignés
-après leur vérification effective.
+Le commit `736045f` est publié sur `origin/main`; le run GitHub Actions #6 a
+terminé avec succès.

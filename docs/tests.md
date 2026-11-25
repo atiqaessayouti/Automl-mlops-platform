@@ -107,7 +107,9 @@ ciblée, l’API conteneurisée et le modèle local renvoient tous deux 0,3468
 ## CI, diff et secrets
 
 - Le workflow `.github/workflows/ci.yml` installe `requirements.txt` puis lance
-  `pytest tests/`. Le workflow distant n’a pas été déclenché ni consulté.
+  `pytest tests/`. Le run GitHub Actions #6 sur `main`, commit `736045f`, est
+  terminé avec succès; le job `test` et l’étape Pytest sont réussis :
+  [résultat du workflow](https://github.com/atiqaessayouti/Automl-mlops-platform/actions/runs/45530432720).
 - `git diff --check` : OK. Git a seulement signalé la conversion habituelle
   LF/CRLF pour le notebook 02 et `tests/test_api.py`.
 - La recherche de marqueurs de secrets dans les fichiers suivis n’a rien

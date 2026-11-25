@@ -44,7 +44,7 @@ servi sur `localhost:8501` après les reconstructions ciblées du 25 novembre
 | 15 | Documentation Swagger FastAPI | Capturée : `fastapi-swagger.png` |
 | 16 | Résultat Pytest | À capturer depuis une exécution réelle |
 | 17 | Conteneurs Docker actifs | À capturer |
-| 18 | GitHub Actions | Bloqué jusqu’à l’autorisation explicite de publication |
+| 18 | GitHub Actions | Workflow #6 réussi; capture d’écran non enregistrée |
 
 Les six captures historiques de `screenshots/tests/` sont conservées et ne
 représentent pas la version finale du dashboard. Les captures MLflow montrent
