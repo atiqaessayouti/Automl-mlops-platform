@@ -24,6 +24,18 @@ PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://127.0.0.1:9090").rstrip("/"
 METRIC_KEYS = ("accuracy", "precision", "recall", "f1_score", "roc_auc")
 
 
+def _normalize_metrics(
+    metrics: dict[str, float], *, prefer_validation: bool
+) -> dict[str, float]:
+    normalized = metrics.copy()
+    if prefer_validation:
+        for key in METRIC_KEYS:
+            validation_key = f"validation_{key}"
+            if validation_key in metrics:
+                normalized[key] = metrics[validation_key]
+    return normalized
+
+
 @st.cache_data(ttl=300, show_spinner=False)
 def load_churn_dataset() -> tuple[pd.DataFrame | None, str | None]:
     if not DATASET_PATH.is_file():
@@ -126,24 +138,34 @@ def load_mlflow_snapshot() -> tuple[dict[str, Any] | None, str | None]:
             model_name = params_by_run.get(run["run_uuid"], {}).get("model_type", run_name)
             if model_name in candidate_by_model:
                 continue
+            run_metrics = _normalize_metrics(
+                metrics_by_run.get(run["run_uuid"], {}),
+                prefer_validation=True,
+            )
             candidate_by_model[model_name] = {
                 "model": model_name,
                 "run_id": run["run_uuid"],
                 "status": run["status"],
                 "start_time": run["start_time"],
-                **metrics_by_run.get(run["run_uuid"], {}),
+                **run_metrics,
             }
 
-        run_history = [
-            {
-                "run_name": row["name"] or "Essai sans nom",
-                "run_id": row["run_uuid"],
-                "status": row["status"],
-                "start_time": row["start_time"],
-                **metrics_by_run.get(row["run_uuid"], {}),
-            }
-            for row in run_rows[:12]
-        ]
+        run_history = []
+        for row in run_rows[:12]:
+            run_name = row["name"] or "Essai sans nom"
+            run_metrics = _normalize_metrics(
+                metrics_by_run.get(row["run_uuid"], {}),
+                prefer_validation=not run_name.endswith("-registered"),
+            )
+            run_history.append(
+                {
+                    "run_name": run_name,
+                    "run_id": row["run_uuid"],
+                    "status": row["status"],
+                    "start_time": row["start_time"],
+                    **run_metrics,
+                }
+            )
         latest_run = run_history[0] if run_history else None
 
         registered_models = [

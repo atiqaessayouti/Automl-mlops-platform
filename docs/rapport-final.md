@@ -22,15 +22,15 @@ après l’entraînement Optuna.
 | DVC et reproductibilité locale | Partiellement terminé | `dvc status`/`dvc repro` réussis ; prétraitement réexécutable mais manuel avant le stage, pointeurs `.dvc` conservés |
 | Récupération DVC à distance | Impossible à vérifier | Aucun remote configuré ; `dvc status --cloud` échoue avec « no remote specified ». Les artefacts actuellement absents ne sont pas récupérables à distance |
 | MLflow Tracking et Registry | Partiellement terminé | Base SQLite locale : 15 runs et trois versions `READY`; interface Tracking et registre capturés. Pas de service Compose ni de stockage partagé |
-| FastAPI et vraies prédictions | Partiellement terminé | Endpoints et validation vérifiés HTTP 200/422; l’API conteneurisée sert encore l’ancien artefact, différent du modèle local entraîné |
-| Streamlit — six pages et API | Partiellement terminé | Six pages et appel API réel vérifiés; captures de la version française antérieure. Le conteneur n’est pas reconstruit avec les artefacts Optuna récents |
-| Docker Compose et quatre services | Partiellement terminé | Configuration valide et quatre services actifs au dernier contrôle; images API/dashboard périmées par rapport aux artefacts locaux. Pas de build après le dernier entraînement |
+| FastAPI et vraies prédictions | Terminé et vérifié | Endpoints HTTP 200, entrée invalide 422; après reconstruction, la prédiction conteneurisée correspond au modèle local |
+| Streamlit — six pages et API | Terminé et vérifié | Six pages rendues; comparaison MLflow corrigée et prédiction réelle du formulaire confirmée après reconstruction |
+| Docker Compose et quatre services | Partiellement terminé | Configuration valide et quatre services actifs; API/dashboard mis à jour. Healthchecks Docker non définis et dépendances `service_started` |
 | Prometheus | Terminé et vérifié | `/‑/healthy` HTTP 200 ; target `automl-api` sain ; métrique `up=1` |
 | Grafana | Terminé et vérifié | `/api/health` HTTP 200; dashboard consulté avec authentification, capture montrant API disponible et requêtes |
-| Pytest local | Terminé et vérifié | 18 tests réussis, 0 échec, 1 avertissement Starlette/httpx |
+| Pytest local | Terminé et vérifié | 20 tests réussis, 0 échec, 1 avertissement Starlette/httpx |
 | GitHub Actions / CI-CD | Partiellement terminé | Workflow présent et lance pytest sur push/PR ; aucun run distant vérifié, conformément à l’interdiction de publication |
 | Documentation finale | Partiellement terminé | README, installation, architecture, tests et rapport actualisés; captures authentiques et limitations recensées |
-| Captures de démonstration | Partiellement terminé | Captures réelles du dashboard, prédiction, Swagger, Prometheus, Grafana, MLflow Tracking et Registry; architecture, prétraitement, évaluation, Pytest et Docker manquent |
+| Captures de démonstration | Partiellement terminé | Captures réelles du dashboard, prédiction, évaluation, Swagger, Prometheus, Grafana, MLflow Tracking et Registry; architecture, prétraitement, Pytest et Docker manquent |
 | Secrets publiables | Terminé et vérifié | Recherche de motifs de clés et secrets dans les fichiers suivis : aucun résultat ; pas de `.env*` à la racine |
 
 ## Résultats réels actuellement disponibles
@@ -40,13 +40,11 @@ Le rapport local `reports/metrics.json` indique le GradientBoosting au seuil
 0,8454. Son F1 de validation est 0,6537. Les données préparées sont non vides,
 sans valeurs manquantes dans les matrices encodées, et la cible est `0/1`.
 
-Les quatre conteneurs étaient `Up` au dernier contrôle; l’API, Prometheus et
-Grafana répondent. La cible `automl-api` vaut `up=1`, et Grafana a été inspecté
-visuellement. Toutefois, le même profil de contrôle donne 0,294 dans le
-conteneur et 0,3468 avec l’artefact local Optuna (risque faible dans les deux
-cas) : l’API conteneurisée n’est pas alignée sur le modèle nouvellement entraîné.
-La prédiction Streamlit capturée (64,0 %, risque élevé) provient de la version
-de service antérieure.
+Les quatre conteneurs sont `Up`; l’API, Prometheus et Grafana répondent. La
+cible `automl-api` vaut `up=1`, et Grafana a été inspecté visuellement. Après
+reconstruction ciblée, le même profil de contrôle renvoie 0,3468 à l’API et au
+modèle local (risque faible). Le formulaire Streamlit a renvoyé 67,9 % pour un
+autre profil (risque élevé).
 
 ## Corrections appliquées pendant cet audit
 
@@ -76,6 +74,8 @@ de service antérieure.
   montre une vraie prédiction et l’API a également été testée directement.
 - Captures authentiques ajoutées pour Grafana et les interfaces MLflow Tracking
   et Registry.
+- Normalisation des métriques MLflow `validation_*` dans la couche d’accès aux
+  données, afin que le dashboard compare bien les quatre derniers candidats.
 
 ## Fichiers inclus dans la livraison locale
 
@@ -96,20 +96,16 @@ séquence sont conservés. Aucun fichier n’a été supprimé.
 
 ## Tâches restantes avant une validation finale
 
-1. Réconcilier le service API et le dashboard avec les derniers artefacts
-   Optuna. Avant un build ciblé, revérifier l’espace libre et demander
-   l’autorisation requise; ne supprimer ni images, ni volumes, ni données.
-2. Capturer les vues manquantes de l’architecture, du prétraitement, de
-   l’évaluation finale, de Pytest et des conteneurs depuis des exécutions
-   réelles.
-3. Le prétraitement reste manuel avant le stage DVC; l’ajouter au pipeline
+1. Capturer les vues manquantes de l’architecture, du prétraitement, de Pytest
+   et des conteneurs depuis des exécutions réelles.
+2. Le prétraitement reste manuel avant le stage DVC; l’ajouter au pipeline
    nécessite une stratégie compatible avec les pointeurs DVC déjà suivis.
-4. Choisir et autoriser un stockage DVC uniquement si la récupération distante
+3. Choisir et autoriser un stockage DVC uniquement si la récupération distante
    est nécessaire. Aucun remote fictif ne doit être ajouté.
-5. Examiner si une sortie sans avertissement est exigée : Vega au premier
+4. Examiner si une sortie sans avertissement est exigée : Vega au premier
    rendu, Starlette/httpx, `SVC(probability=True)` et désérialisation MLflow
    sont signalés sans masquer les avertissements.
-6. Ne vérifier GitHub Actions distant ni publier les changements qu’après
+5. Ne vérifier GitHub Actions distant ni publier les changements qu’après
    autorisation explicite. Aucun push ou PR n’a été effectué.
 
 **Aucune publication GitHub n’a été effectuée.** La phase de publication reste

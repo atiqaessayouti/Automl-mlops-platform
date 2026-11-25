@@ -1,9 +1,9 @@
 # Captures d’écran de soutenance
 
 Les captures ont été réalisées sur les services locaux réellement exécutés.
-Les six captures de pages proviennent du dashboard français déployé sur
-`localhost:8501` après son redéploiement du 23 novembre 2026. Aucune maquette ni
-capture simulée n’est utilisée.
+Les six captures de pages ont été actualisées depuis le dashboard français
+servi sur `localhost:8501` après les reconstructions ciblées du 25 novembre
+2026. Aucune maquette ni capture simulée n’est utilisée.
 
 ## Captures disponibles
 
@@ -12,8 +12,9 @@ capture simulée n’est utilisée.
 | `overview.png` | Vue d’ensemble, KPI réels et état de la plateforme | 1920 × 1080 |
 | `data-explorer.png` | Exploration du jeu de données réel | 1920 × 1080 |
 | `experiments.png` | Comparaison des essais et métriques MLflow | 1920 × 1080 |
+| `evaluation-results.png` | Résultats finaux d’évaluation depuis la page Expériences | 1920 × 1080 |
 | `prediction-form.png` | Formulaire de prédiction | 1920 × 1080 |
-| `prediction-result.png` | Résultat réel : 64,0 %, risque élevé, GradientBoosting | 571 × 431 |
+| `prediction-result.png` | Résultat réel : 67,9 %, risque élevé, GradientBoosting | 1920 × 1080 |
 | `model-registry.png` | Registre affiché dans Streamlit | 1920 × 1080 |
 | `monitoring.png` | État des services affiché dans Streamlit; les graphiques sont plus bas dans la page | 1920 × 1080 |
 | `fastapi-swagger.png` | Documentation OpenAPI FastAPI | 1920 × 1080 |
@@ -32,7 +33,7 @@ capture simulée n’est utilisée.
 | 4 | Prétraitement | À capturer depuis un notebook réellement exécuté |
 | 5 | Expérimentations AutoML | Capturée : `experiments.png` |
 | 6 | Comparaison des modèles | Capturée : page Expériences, métriques réelles |
-| 7 | Résultats finaux d’évaluation | À capturer séparément depuis `reports/metrics.json` |
+| 7 | Résultats finaux d’évaluation | Capturés dans `evaluation-results.png` depuis la page Expériences |
 | 8 | MLflow Tracking | Capturée : `mlflow-tracking.png` (interface locale, non déployée par Compose) |
 | 9 | Model Registry | Capturé dans Streamlit (`model-registry.png`) et MLflow (`mlflow-registry.png`) |
 | 10 | Formulaire de prédiction | Capturé : `prediction-form.png` |

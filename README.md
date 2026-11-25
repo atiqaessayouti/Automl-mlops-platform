@@ -5,15 +5,13 @@ plateforme AutoML/MLOps pour entraîner, évaluer, déployer et superviser des
 modèles de Machine Learning**. Le cas d’usage est la prédiction de résiliation
 de clients d’un opérateur télécom à partir du dataset Telco Customer Churn.
 
-> **État vérifié le 25 novembre 2026 :** Pytest : **18 réussis, 0 échec,
+> **État vérifié le 25 novembre 2026 :** Pytest : **20 réussis, 0 échec,
 > 1 avertissement** Starlette/httpx.
 > Les captures du dashboard et les résultats de prédiction ci-dessous ont été
-> obtenus sur la version française déployée localement le 23 novembre 2026.
-> Les quatre services Docker sont encore actifs, mais les images API/dashboard
-> en cours d’exécution contiennent des artefacts antérieurs au dernier
-> entraînement Optuna. Pour le même profil, l’API conteneurisée renvoie 0,294
-> et le modèle local mis à jour 0,3468 (les deux indiquent un risque faible).
-> Aucun build n’a été relancé dans cette vérification.
+> obtenus sur la version française mise à jour localement le 25 novembre 2026.
+> Les quatre services Docker sont actifs. Les images API et dashboard ont été
+> reconstruites après l’entraînement Optuna; l’API conteneurisée et le modèle
+> local renvoient tous deux 0,3468 pour le même profil de contrôle.
 > Aucun run GitHub Actions distant n’a été vérifié. Aucun remote DVC n’est
 > configuré; les données préparées et les métadonnées MLflow locales ne sont
 > pas publiées dans Git.
@@ -55,6 +53,8 @@ Expériences compare les modèles à partir des métriques enregistrées dans ML
 ![Exploration du dataset Telco](docs/screenshots/data-explorer.png)
 
 ![Comparaison des expériences AutoML](docs/screenshots/experiments.png)
+
+![Résultats finaux du jeu de test](docs/screenshots/evaluation-results.png)
 
 ### Prédiction en direct
 
@@ -352,11 +352,10 @@ docker compose build api dashboard
 docker compose up -d --no-deps api dashboard
 ```
 
-Ces commandes n’ont pas été exécutées après l’entraînement Optuna et ne
-suppriment pas les volumes. Au dernier contrôle, C: disposait d’environ
-4,99 Go libres; la place réellement requise dépend des couches intermédiaires
-du build. Aucun déploiement cloud, stockage DVC distant ou service payant
-n’est configuré.
+Ces commandes ont été exécutées pour aligner les conteneurs sur les artefacts
+locaux; elles ne suppriment pas les volumes. Elles ne concernent que l’API et
+le dashboard, sans reconstruire Prometheus ou Grafana. Aucun déploiement cloud,
+stockage DVC distant ou service payant n’est configuré.
 
 ## Captures d’écran
 

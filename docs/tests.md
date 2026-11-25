@@ -12,12 +12,14 @@ Commande complète après les corrections d’affichage :
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
-Dernière exécution complète effectuée le 25 novembre 2026 après l’ajout de la préparation,
-l’optimisation Optuna et le correctif des noms de variables : **18 réussis,
-0 échoué, 1 avertissement**. L’avertissement `StarletteDeprecationWarning`
-concerne l’usage de `httpx` avec `starlette.testclient`. Cette exécution valide
-le code local; elle ne valide pas que les conteneurs en cours servent les
-derniers artefacts.
+Dernière exécution complète effectuée le 25 novembre 2026 après le correctif
+d’intégration MLflow/dashboard : **20 réussis, 0 échoué, 1 avertissement**.
+L’avertissement `StarletteDeprecationWarning` concerne l’usage de `httpx` avec
+`starlette.testclient`. Un premier lancement en parallèle des vérifications
+des services a dépassé le délai interne de 3 secondes d’un test AppTest;
+relancé seul, ce test a réussi, puis la suite complète relancée séquentiellement
+a réussi. L’alignement des artefacts en conteneur a été vérifié séparément par
+comparaison de leurs empreintes SHA-256 avec les fichiers locaux.
 
 ## Données, modèles et DVC
 
@@ -51,16 +53,16 @@ Contrôle HTTP local sur `http://127.0.0.1:8000` :
 | `POST /predict` avec un profil client valide | HTTP 200 ; réponse du modèle réel |
 | `POST /predict` avec `tenure="not-a-number"` | HTTP 422, validation Pydantic |
 
-Le profil de contrôle identique a renvoyé 0,3468 avec le modèle local mis à
-jour et 0,294 avec l’API du conteneur encore actif. Les deux réponses indiquent
-un risque faible, mais cette différence confirme que le conteneur API ne sert
-pas le dernier artefact. Ces valeurs ne sont pas des KPI généraux.
+Avant reconstruction, le profil de contrôle identique renvoyait 0,294 dans
+l’ancien conteneur et 0,3468 avec le nouvel artefact local. Après reconstruction
+ciblée, l’API conteneurisée et le modèle local renvoient tous deux 0,3468
+(`Low Risk (Stay)`). Ces valeurs ne sont pas des KPI généraux.
 
 ## Streamlit
 
-- L’image du dashboard a été reconstruite le 23 novembre 2026 et le conteneur
-  sert la version française; il n’a pas été reconstruit après le dernier
-  entraînement Optuna.
+- L’image du dashboard français a été reconstruite après le dernier
+  entraînement Optuna et mise à jour une seconde fois pour normaliser les noms
+  des métriques MLflow consommées par les pages.
 - Les six liens de navigation ont été activés dans le navigateur. Les six URL
   et titres de page attendus ont été observés, sans réponse HTTP 4xx/5xx pendant
   cette navigation.
@@ -68,13 +70,13 @@ pas le dernier artefact. Ces valeurs ne sont pas des KPI généraux.
   internes `/{page}/_stcore/health` et `/{page}/_stcore/host-config`. Les pages
   et liens de navigation eux-mêmes ne sont pas en 404 ; les erreurs concernent
   ces requêtes relatives internes de Streamlit.
-- Le formulaire a envoyé un profil réel à FastAPI : **64,0 %**, risque élevé,
-  seuil 35 %, modèle GradientBoosting. Ce résultat provient de la version de
-  service capturée avant le dernier entraînement.
-- Le 25 novembre, les endpoints `localhost:8501/`, `localhost:8000/`,
+- Le formulaire a envoyé un profil réel à FastAPI : **67,9 %**, risque élevé,
+  seuil 35 %, modèle GradientBoosting. Cette entrée est différente du profil de
+  contrôle qui donne 0,3468.
+- Le 25 novembre, après reconstruction, les endpoints `localhost:8501/`, `localhost:8000/`,
   `/health`, `/metrics`, `localhost:9090/-/healthy` et
   `localhost:3000/api/health` ont tous répondu HTTP 200. Une nouvelle
-  prédiction API a répondu HTTP 200 avec une probabilité de 0,294.
+  prédiction API de contrôle a répondu HTTP 200 avec une probabilité de 0,3468.
 - Les graphiques sont rendus avec des séries réelles. Des avertissements Vega
   non bloquants persistent : liaison d’échelle sur des axes catégoriels,
   canal `yOffset` vide, et étendues infinies transitoires au premier rendu des
@@ -88,14 +90,13 @@ pas le dernier artefact. Ces valeurs ne sont pas des KPI généraux.
 ## Docker, Prometheus et Grafana
 
 - `docker compose config --quiet` s’est terminé correctement.
-- Les quatre conteneurs étaient `Up` après la reconstruction ciblée du
-  dashboard : API, Streamlit, Prometheus et Grafana.
-- Lors du contrôle du 24 novembre, les ports hôtes 8000, 8501, 9090 et 3000
-  étaient publiés et les endpoints de santé accessibles.
-- Aucun build n’a été effectué après le dernier entraînement. Lors du dernier
-  contrôle d’espace disponible, C: avait environ 6,45 Go libres et les images
-  API/dashboard occupaient environ 1,16 Go chacune. Aucun nettoyage,
-  suppression d’image, suppression de volume ou de donnée n’a été effectué.
+- Les quatre conteneurs sont `Up` après les reconstructions ciblées de l’API et
+  du dashboard : API, Streamlit, Prometheus et Grafana.
+- Le 25 novembre, après les reconstructions ciblées, les ports hôtes 8000,
+  8501, 9090 et 3000 étaient publiés et les endpoints de santé accessibles.
+- Les builds ciblés `api dashboard`, puis `dashboard` (pour inclure le correctif
+  MLflow) ont réussi avec le cache. Aucun nettoyage, suppression d’image,
+  suppression de volume ou de donnée n’a été effectué.
 - Prometheus `/-/healthy` : HTTP 200.
 - Le target `automl-api` : `health=up`, et la requête Prometheus `up{job="automl-api"}` renvoie `1`.
 - Grafana `/api/health` : HTTP 200 et base `ok`; la capture authentifiée
@@ -117,9 +118,10 @@ pas le dernier artefact. Ces valeurs ne sont pas des KPI généraux.
 Les captures d’écran des six pages, du résultat de prédiction, de Swagger,
 des cibles Prometheus, du dashboard Grafana, de MLflow Tracking et du registre
 MLflow sont disponibles dans [docs/screenshots/](screenshots/README.md).
-L’architecture, le prétraitement, l’évaluation finale, Pytest et les
-conteneurs restent à capturer depuis des vues d’exécution authentiques. Les six
-captures historiques sous `screenshots/tests/` sont conservées.
+L’évaluation finale est également capturée. L’architecture, le prétraitement,
+Pytest et les conteneurs restent à capturer depuis des vues d’exécution
+authentiques. Les six captures historiques sous `screenshots/tests/` sont
+conservées.
 
 ## Avertissements de l’entraînement
 
