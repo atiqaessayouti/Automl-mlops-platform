@@ -1,13 +1,14 @@
 # Rapport de conformité local
 
 - **Projet :** plateforme AutoML/MLOps de prédiction du churn télécom
+- **Auteurs :** TIMOURTI SANA, ESSAYOUTI ATIQA, MISBAH KAOUTAR
 - **Référence :** `Document_de_cadrage_AutoML_MLOps (1).pdf`
 - **État du contrôle :** 25 novembre 2026, complété par les captures MLflow locales
-- **Branche observée :** `feature/devops-deployment`
-**Périmètre :** audit et validation locale. Aucun push, changement de branche,
-Pull Request, fusion, suppression de données ou de volume. Un build dashboard
-avait été réalisé lors de la validation antérieure; aucun build n’a été relancé
-après l’entraînement Optuna.
+- **Branche de travail :** `feature/devops-deployment`
+- **Branche de livraison :** `main`
+**Périmètre :** audit et validation locale, puis publication sur `origin/main`
+après intégration et contrôles finaux. Aucun nettoyage destructif ni suppression
+de données ou de volume n’a été effectué.
 
 ## Tableau de conformité
 
@@ -66,9 +67,10 @@ autre profil (risque élevé).
 - `src/predict.py` conserve les noms des variables transformées lors de
   l’inférence, supprimant l’avertissement de noms de variables sur la
   prédiction locale.
-- L’image du seul service dashboard a été reconstruite avec le cache des
-  dépendances, puis le conteneur dashboard recréé. Aucun autre service, volume,
-  image ou jeu de données n’a été supprimé.
+- Les images API et dashboard ont été reconstruites de façon ciblée après
+  l’entraînement Optuna; le dashboard a ensuite été reconstruit pour intégrer
+  la normalisation des métriques MLflow. Aucun volume, jeu de données ou image
+  utile n’a été supprimé.
 - Documentation française créée ou complétée dans `README.md` et `docs/`.
 - Les six pages ont été vérifiées dans le navigateur ; la capture du résultat
   montre une vraie prédiction et l’API a également été testée directement.
@@ -105,8 +107,7 @@ séquence sont conservés. Aucun fichier n’a été supprimé.
 4. Examiner si une sortie sans avertissement est exigée : Vega au premier
    rendu, Starlette/httpx, `SVC(probability=True)` et désérialisation MLflow
    sont signalés sans masquer les avertissements.
-5. Ne vérifier GitHub Actions distant ni publier les changements qu’après
-   autorisation explicite. Aucun push ou PR n’a été effectué.
+5. Vérifier le résultat du workflow GitHub Actions déclenché par la publication.
 
-**Aucune publication GitHub n’a été effectuée.** La phase de publication reste
-bloquée jusqu’à une autorisation explicite.
+La publication sur `origin/main` et le résultat du workflow CI seront renseignés
+après leur vérification effective.

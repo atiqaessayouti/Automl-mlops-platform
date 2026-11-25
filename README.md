@@ -12,9 +12,9 @@ de clients d’un opérateur télécom à partir du dataset Telco Customer Churn
 > Les quatre services Docker sont actifs. Les images API et dashboard ont été
 > reconstruites après l’entraînement Optuna; l’API conteneurisée et le modèle
 > local renvoient tous deux 0,3468 pour le même profil de contrôle.
-> Aucun run GitHub Actions distant n’a été vérifié. Aucun remote DVC n’est
-> configuré; les données préparées et les métadonnées MLflow locales ne sont
-> pas publiées dans Git.
+> Le workflow GitHub Actions sera vérifié après publication. Aucun remote DVC
+> n’est configuré; les données préparées et les métadonnées MLflow locales ne
+> sont pas publiées dans Git.
 
 ## Présentation
 
@@ -195,7 +195,10 @@ préprocesseur sont référencés par `data/processed.dvc` et
 Les données préparées et modèles conservés dans le cache DVC local ne seront
 pas récupérables par `dvc pull` sur une autre machine. Le CSV brut est suivi
 dans Git et les exports peuvent être régénérés avec `python src/preprocess.py`.
-Aucun identifiant ni remote fictif n’est inclus.
+Le petit artefact final `models/churn_pipeline.joblib` est également suivi dans
+Git afin qu’un clone puisse construire l’image de l’API sans remote DVC; le
+préprocesseur et les jeux préparés restent gérés localement par DVC. Aucun
+identifiant ni remote fictif n’est inclus.
 
 ### MLflow
 
@@ -344,8 +347,8 @@ docker compose ps
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
-Pour aligner l’API et le dashboard sur les artefacts locaux après autorisation
-explicite et contrôle de l’espace disque :
+Pour reconstruire l’API et le dashboard après une modification du modèle ou
+du code, vérifier d’abord l’espace disque :
 
 ```powershell
 docker compose build api dashboard
@@ -373,16 +376,14 @@ finale actuelle.
   étape locale manuelle avant `dvc repro`, afin de préserver les pointeurs DVC
   existants.
 - MLflow est local, sans serveur Compose ni stockage partagé.
-- Les conteneurs API/dashboard ne servent pas encore le modèle et les métriques
-  du dernier entraînement Optuna. Un build ciblé nécessitera une vérification
-  de l’espace disque et une autorisation explicite; aucune image ni donnée ne
-  doit être supprimée.
+- Les conteneurs vérifiés servent le modèle et les métriques actuels; les
+  empreintes des fichiers dans l’API et le dashboard correspondent aux
+  artefacts locaux.
 - Des avertissements non bloquants restent à examiner : Vega au premier rendu,
   dépréciation Starlette/httpx, dépréciation de `SVC(probability=True)` et
   avertissement MLflow sur le chargement d’artefacts sérialisés.
-- Compléter les captures de l’architecture, du prétraitement, de l’évaluation,
-  de Pytest et des conteneurs. La capture GitHub Actions dépend d’une
-  publication autorisée.
+- Compléter les captures de l’architecture, du prétraitement, de Pytest et des
+  conteneurs. La capture GitHub Actions dépend du workflow après publication.
 
 Aucun commit, push, merge ou publication distante n’est déclenché par les
 commandes ci-dessus. Voir le

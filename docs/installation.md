@@ -61,23 +61,27 @@ Démarrer les images déjà présentes :
 docker compose up -d
 ```
 
-Le dashboard français a été reconstruit le 23 novembre 2026. Après le dernier
-entraînement Optuna, les conteneurs API et dashboard n’ont pas été reconstruits
-et ne servent donc pas les artefacts locaux les plus récents. Lorsque l’espace
-disque a été revérifié et qu’un build est explicitement autorisé, reconstruire
-uniquement ces deux services :
+Au contrôle final du 25 novembre 2026, les images API et dashboard avaient été
+reconstruites après l’entraînement Optuna et le correctif des métriques MLflow.
+Les empreintes SHA-256 du modèle servi par l’API et du rapport consommé par le
+dashboard correspondent aux artefacts locaux. Il n’est donc pas nécessaire de
+reconstruire les images pour démarrer la version vérifiée.
+
+Après une modification du code ou des artefacts, contrôler l’espace disque puis
+reconstruire uniquement les services concernés. Pour une modification du
+modèle ou des pages du dashboard :
 
 ```powershell
 docker compose build api dashboard
 docker compose up -d --no-deps api dashboard
 ```
 
-Ces commandes ciblent les services nécessaires à la mise à jour du modèle et
-de ses métriques. Elles ne suppriment pas les volumes ; ne pas utiliser
-`down -v`, `system prune` ou une commande de suppression de volume. Le dernier
-contrôle indiquait environ 4,99 Go libres sur C: et des images API/dashboard
-d’environ 1,16 Go chacune; cela ne garantit pas à lui seul la capacité d’un
-build, qui dépend aussi des couches intermédiaires.
+Ces commandes ciblent uniquement l’API et le dashboard, sans supprimer les
+volumes ni reconstruire Prometheus/Grafana. Au dernier contrôle, C: disposait
+d’environ 3,3 Go libres et chaque image applicative occupait 1,16 Go. L’espace
+nécessaire à un build dépend également des couches temporaires; vérifier la
+place disponible avant toute reconstruction. Ne pas utiliser `down -v`,
+`system prune` ni de commande de suppression de volume.
 
 ## URLs locales
 

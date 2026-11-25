@@ -13,5 +13,7 @@ mlartifacts/
 .idea/
 .vscode/
 .env
+.env.*
+!.env.example
 .venv/
 .venv/

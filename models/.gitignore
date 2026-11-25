@@ -1,2 +1,2 @@
 /preprocessor.joblib
-/churn_pipeline.joblib
+!/churn_pipeline.joblib

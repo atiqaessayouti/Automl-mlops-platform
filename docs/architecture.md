@@ -57,10 +57,13 @@ flowchart LR
   distant n’est configuré.
 - Aucun remote DVC n’est configuré par choix; les données préparées peuvent
   être régénérées localement à partir du CSV brut suivi par Git.
+- Le pipeline `models/churn_pipeline.joblib` (68 Ko) est suivi directement
+  dans Git pour permettre un build Docker depuis un clone sans remote DVC. Le
+  préprocesseur et les matrices préparées restent suivis par DVC localement.
 - `docker-compose.yml` utilise `depends_on` avec `service_started`, sans
   healthchecks Docker dédiés.
-- Le conteneur Streamlit a été reconstruit pour servir la source française ;
-  les quatre services Compose étaient actifs lors du contrôle.
+- Les images API et Streamlit ont été reconstruites après l’entraînement
+  Optuna; les quatre services Compose étaient actifs lors du contrôle final.
 - Les sondes Prometheus sont visibles dans l’interface Supervision. Le dashboard
   Grafana a été ouvert avec une session authentifiée et capturé dans
   `docs/screenshots/grafana-dashboard.png`.

@@ -60,9 +60,9 @@ ciblée, l’API conteneurisée et le modèle local renvoient tous deux 0,3468
 
 ## Streamlit
 
-- L’image du dashboard français a été reconstruite après le dernier
-  entraînement Optuna et mise à jour une seconde fois pour normaliser les noms
-  des métriques MLflow consommées par les pages.
+- Les images API et dashboard ont été reconstruites après le dernier
+  entraînement Optuna; le dashboard a été reconstruit une seconde fois pour
+  normaliser les noms des métriques MLflow consommées par les pages.
 - Les six liens de navigation ont été activés dans le navigateur. Les six URL
   et titres de page attendus ont été observés, sans réponse HTTP 4xx/5xx pendant
   cette navigation.
