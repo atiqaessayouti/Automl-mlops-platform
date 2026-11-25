@@ -5,6 +5,12 @@ plateforme AutoML/MLOps pour entraîner, évaluer, déployer et superviser des
 modèles de Machine Learning**. Le cas d’usage est la prédiction de résiliation
 de clients d’un opérateur télécom à partir du dataset Telco Customer Churn.
 
+**Réalisé par :**
+
+- TIMOURTI SANA
+- ESSAYOUTI ATIQA
+- MISBAH KAOUTAR
+
 > **État vérifié le 25 novembre 2026 :** Pytest : **20 réussis, 0 échec,
 > 1 avertissement** Starlette/httpx.
 > Les captures du dashboard et les résultats de prédiction ci-dessous ont été

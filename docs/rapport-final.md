@@ -1,7 +1,10 @@
 # Rapport de conformité local
 
 - **Projet :** plateforme AutoML/MLOps de prédiction du churn télécom
-- **Auteurs :** TIMOURTI SANA, ESSAYOUTI ATIQA, MISBAH KAOUTAR
+- **Réalisé par :**
+  - TIMOURTI SANA
+  - ESSAYOUTI ATIQA
+  - MISBAH KAOUTAR
 - **Référence :** `Document_de_cadrage_AutoML_MLOps (1).pdf`
 - **État du contrôle :** 25 novembre 2026, complété par les captures MLflow locales
 - **Branche de travail :** `feature/devops-deployment`
