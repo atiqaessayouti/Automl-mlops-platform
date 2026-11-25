@@ -391,8 +391,3 @@ finale actuelle.
 - Compléter les captures de l’architecture, du prétraitement, de Pytest et des
   conteneurs. Le workflow GitHub Actions a réussi, mais sa capture d’écran
   reste à enregistrer.
-
-Aucun commit, push, merge ou publication distante n’est déclenché par les
-commandes ci-dessus. Voir le
-[rapport de conformité](docs/rapport-final.md) pour l’état des exigences du
-cadrage.
